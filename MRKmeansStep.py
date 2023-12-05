@@ -17,8 +17,11 @@ MRKmeansDef
 
 """
 
+from functools import reduce
 from mrjob.job import MRJob
 from mrjob.step import MRStep
+import collections
+import itertools
 
 __author__ = 'bejar'
 
@@ -35,7 +38,44 @@ class MRKmeansStep(MRJob):
 
         The result should be always a value in the range [0,1]
         """
-        return 1
+        w1 = 0   #prot
+        w2 = 0   #doc
+        dot = 0
+
+        pointerw1 = 0
+        pointerw2 = 0
+
+        d1 = False
+        d2 = False
+
+
+        while not (d1 and d2):
+
+            if (prot[pointerw1][0] < doc[pointerw2] and not d1) or(not d1 and d2):   #pointer of the first word is on a smaller word
+                w1 += pow(prot[pointerw1][1],2)  #inner sum
+                pointerw1 += 1  #move pointer
+        
+            elif (prot[pointerw1][0] > doc[pointerw2] and not d2) or(not d2 and d1): #pointer of the second word is on a smaller word
+                w2 += 1
+                pointerw2 += 1
+    
+            else: #both pointers are on the same word
+                w1 += pow(prot[pointerw1][1],2) #inner sum
+                w2 += 1
+                dot += prot[pointerw1][1]  #append to dot product
+                pointerw1 += 1 #move both pointers
+                pointerw2 += 1
+
+            if pointerw1 == len(prot):  #checks of all words in a vector are read and prevents that pointer goes to far
+                pointerw1 -= 1
+                d1 = True
+
+            if pointerw2 == len(doc):
+                pointerw2 -= 1
+                d2 = True
+            
+        return dot/(w1+w2-dot)
+
 
     def configure_args(self):
         """
@@ -75,12 +115,18 @@ class MRKmeansStep(MRJob):
         doc, words = line.split(':')
         lwords = words.split()
 
-        #
-        # Compute map here
-        #
+        min_prot = list(self.prototypes.keys())[0]
+        val_prot = 0
+
+        for p in self.prototypes:
+
+            cur_val = self.jaccard(self.prototypes[p], lwords)
+            if cur_val > val_prot:
+                min_prot=p
+                val_prot = cur_val
 
         # Return pair key, value
-        yield None, None
+        yield min_prot, line         #key: prot_id (cluster), value: string docid:wor1 word2 ... wordn
 
     def aggregate_prototype(self, key, values):
         """
@@ -100,7 +146,17 @@ class MRKmeansStep(MRJob):
         :return:
         """
 
-        yield None, None
+        doc_num = len(values)
+        flatten = list(itertools.chain.from_iterable(values))
+
+        counter = dict(collections.Counter(flatten))
+
+        res = []
+
+        for key in counter:
+            res.append((key, counter[key]/doc_num))
+            
+        yield key, res
 
     def steps(self):
         return [MRStep(mapper_init=self.load_data, mapper=self.assign_prototype,
