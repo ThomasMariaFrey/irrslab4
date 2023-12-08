@@ -61,14 +61,26 @@ if __name__ == '__main__':
             # Process the results of the script iterating the (key,value) pairs
             for key, value in mr_job1.parse_output(runner1.cat_output()):
                 # You should store things here probably in a datastructure
+                new_assign[key] = value[1]
+                new_proto[Key] = value[0]
 
+                
             # If your scripts returns the new assignments you could write them in a file here
 
+            #still missing!!!!
+
             # You should store the new prototypes here for the next iteration
+            mr_job1.prototypes = new_proto 
 
             # If you have saved the assignments, you can check if they have changed from the previous iteration
 
-        print(f"Time= {(time.time() - tinit)} seconds" % )
+            if not bool(assign):   #check if dict not empty
+                if new_assign == assign:            #This probably does not work. Also it could happen that the assignment stays the same but the names of clusters are swichted. (At least I think that can happen). This would evaluate as new != old even though it is the same assignment 
+                    nomove = True
+                else:
+                    assign = new_assign
+
+        print(f"Time= {(time.time() - tinit)} seconds" %)       
 
         if nomove:  # If there is no changes in two consecutive iteration we can stop
             print("Algorithm converged")

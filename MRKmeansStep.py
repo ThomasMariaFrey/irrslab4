@@ -161,8 +161,8 @@ class MRKmeansStep(MRJob):
 
         res = []
 
-        for key in counter:
-            res.append((key, counter[key]/doc_num))
+        for i in counter:
+            res.append((i, counter[key]/doc_num))
             
         yield key, (res, doc_list)
 
