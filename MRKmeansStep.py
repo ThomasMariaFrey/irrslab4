@@ -74,7 +74,7 @@ class MRKmeansStep(MRJob):
                 pointerw2 -= 1
                 d2 = True
             
-        return dot/(w1+w2-dot)
+        return dot/(w1+w2-dot) 
 
 
     def configure_args(self):
@@ -126,7 +126,7 @@ class MRKmeansStep(MRJob):
                 val_prot = cur_val
 
         # Return pair key, value
-        yield min_prot, line         #key: prot_id (cluster), value: string docid:wor1 word2 ... wordn
+        yield min_prot, line         #key: prot_id (cluster), value: docid:wor1 word2 ... wordn
 
     def aggregate_prototype(self, key, values):
         """
@@ -147,16 +147,24 @@ class MRKmeansStep(MRJob):
         """
 
         doc_num = len(values)
-        flatten = list(itertools.chain.from_iterable(values))
 
-        counter = dict(collections.Counter(flatten))
+        word_list = []
+        doc_list = []
+
+        for i in values:
+            doc, words = i.split(':')
+            word_list += words.split()
+            doc_list.append(doc)
+
+
+        counter = dict(collections.Counter(word_list))
 
         res = []
 
         for key in counter:
             res.append((key, counter[key]/doc_num))
             
-        yield key, res
+        yield key, (res, doc_list)
 
     def steps(self):
         return [MRStep(mapper_init=self.load_data, mapper=self.assign_prototype,
