@@ -62,7 +62,9 @@ if __name__ == '__main__':
             for key, value in mr_job1.parse_output(runner1.cat_output()):
                 # You should store things here probably in a datastructure
                 new_assign[key] = value[1]
-                new_proto[Key] = value[0]
+
+                #new_proto[Key] = value[0]
+                new_proto[key] = value[0]
 
                 
             # If your scripts returns the new assignments you could write them in a file here
@@ -80,7 +82,7 @@ if __name__ == '__main__':
                 else:
                     assign = new_assign
 
-        print(f"Time= {(time.time() - tinit)} seconds" %)       
+        print(f"Time= {(time.time() - tinit)} seconds")
 
         if nomove:  # If there is no changes in two consecutive iteration we can stop
             print("Algorithm converged")
